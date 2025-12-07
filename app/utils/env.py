@@ -75,7 +75,7 @@ class EnvConfig:
     @property
     def influxdb_bucket(self) -> str:
         """Get influxdb bucket."""
-        return self.get_env_var("INFLUXDB_BUCKET")
+        return self.get_env_var("INFLUXDB_BUCKET", "test-bucket")
 
     @property
     def influxdb_batch_size(self) -> int:
