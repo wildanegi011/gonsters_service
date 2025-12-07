@@ -30,7 +30,7 @@ dev = [
 
 # Ruff configuration
 [tool.ruff]
-src = ["src"]
+src = ["app"]
 target-version = "py312"
 line-length = 120
 
