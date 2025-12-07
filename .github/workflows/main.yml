@@ -35,7 +35,7 @@ jobs:
             uv.lock
 
       - name: Install deps for linting
-        run: uv sync --group dev
+        run: uv sync --all-extras
 
       - name: Run Ruff Linter
         run: uv run ruff check app --output-format=github
