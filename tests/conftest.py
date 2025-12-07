@@ -18,6 +18,9 @@ test_env_vars = {
     "INFLUXDB_ORG": "test-org",
     "INFLUXDB_BUCKET": "test-bucket",
     "INFLUXDB_BATCH_SIZE": "1000",
+    "INFLUXDB_FLUSH_INTERVAL": "1",
+    "INFLUXDB_JITTER_INTERVAL": "1",
+    "INFLUXDB_RETRY_INTERVAL": "1",
 
     # Redis
     "REDIS_URL": "redis://localhost:6379/0",
