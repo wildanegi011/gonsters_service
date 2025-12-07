@@ -38,7 +38,7 @@ WORKDIR /app
 # Copy app INCLUDING uv’s global cache
 COPY --from=builder /app /app
 
-RUN chown -R appuser:appuser /app/logs
+RUN RUN mkdir -p /app/logs && chown -R appuser:appuser /app/logs
 
 USER appuser
 
