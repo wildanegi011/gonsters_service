@@ -1,7 +1,6 @@
 """Redis client library."""
 
 import json
-from typing import Union
 
 import redis.asyncio as redis
 from redis.exceptions import RedisError

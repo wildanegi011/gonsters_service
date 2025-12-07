@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.modules.machine.schema.machine_schema import MachineSchema, SensorData
+from app.modules.machine.schema.machine_schema import MachineSchema
 from app.modules.machine.service.machine_service import MachineService
 from app.utils.base_response import BaseResponse
 
