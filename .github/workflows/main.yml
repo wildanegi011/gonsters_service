@@ -1,76 +1,123 @@
-name: CI/CD Pipeline with UV & Ruff
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [main, develop]
   pull_request:
-    branches:
-      - main
+    branches: [main, develop]
+
+env:
+  PROJECT_NAME: "gonsters_services"
+  VERSION: "0.1.0"
 
 jobs:
-  # ===== Job 1: Build =====
-  build:
+  # ===============================
+  # 1) LINT JOB
+  # ===============================
+  lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-      - name: Install uv
-        run: |
-          curl -sSL https://ghcr.io/astral-sh/uv:latest | tar -xv -C /usr/local/bin uv uvx
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
 
-      - name: Set working directory
-        run: mkdir -p /app
-      - name: Copy code (GitHub Actions workspace handles this automatically)
-        run: echo "Code is already checked out"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.4.15"
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
 
-      - name: Install dependencies with uv
-        run: uv sync --frozen --no-cache
+      - name: Install deps for linting
+        run: uv sync --all-extras
 
-  # ===== Job 2: Lint =====
+      - name: Run Ruff Linter
+        run: uv run ruff check src --output-format=github
+
+  # ===============================
+  # 2) TEST JOB
+  # ===============================
   test:
     runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    needs: lint   # Run only after lint passes
 
-      - name: Install uv
-        run: |
-          curl -sSL https://ghcr.io/astral-sh/uv:latest | tar -xv -C /usr/local/bin uv uvx
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.4.15"
+          enable-cache: true
+          cache-dependency-glob: |
+            pyproject.toml
+            uv.lock
 
       - name: Install dependencies
-        run: uv sync --frozen --no-cache
+        run: uv sync --all-extras
 
-      - name: Run lint with ruff
-        run: uv run ruff check app/
+      - name: Run Pytest with Coverage
+        run: |
+          uv run pytest tests \
+            --maxfail=1 \
+            --disable-warnings \
+            -q \
+            --cov \
+            --cov-branch \
+            --cov-report=xml \
+            --junitxml=pytest-results.xml
 
-  # ===== Job 3: Deploy =====
-  deploy:
+      - name: Upload coverage to Codecov
+        if: success()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload test results (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-results
+          path: |
+            pytest-results.xml
+            coverage.xml
+
+  # ===============================
+  # 3) BUILD JOB
+  # ===============================
+  build:
     runs-on: ubuntu-latest
-    needs: test
-    if: github.ref == 'refs/heads/main'
+    needs: test  # Only runs after tests pass
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-      - name: Install uv
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
         run: |
-          curl -sSL https://ghcr.io/astral-sh/uv:latest | tar -xv -C /usr/local/bin uv uvx
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/$PROJECT_NAME:$VERSION .
 
-      - name: Install dependencies
-        run: uv sync --frozen --no-cache
-
-      - name: Deploy to production
-        env:
-          PROD_SERVER: ${{ secrets.PROD_SERVER }}
-          PROD_USER: ${{ secrets.PROD_USER }}
-          PROD_KEY: ${{ secrets.PROD_KEY }}
+      - name: Push Docker image
         run: |
-          echo "Deploying to production server..."
-          scp -i $PROD_KEY -r ./app $PROD_USER@$PROD_SERVER:/app
-          ssh -i $PROD_KEY $PROD_USER@$PROD_SERVER "systemctl restart myapp.service"
-
-      - name: Post-deploy verification (optional)
-        run: curl -f https://myapp.example.com/health || exit 1
+          docker push ${{ secrets.DOCKER_USERNAME }}/$PROJECT_NAME:$VERSION

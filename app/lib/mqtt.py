@@ -33,7 +33,6 @@ async def message(client: MQTTClient, topic: str, payload: bytes, qos: int, prop
     logger.info(f"Processed message on {topic}: {data}")
 
 @fast_mqtt.on_disconnect()
-def disconnect(client: MQTTClient, rc: int, properties: Any):
+def disconnect(client: MQTTClient, packet, exc=None):
     """Disconnect."""
-    client.disconnect()
-    logger.info("Disconnected")
+    logger.info("MQTT Disconnected")

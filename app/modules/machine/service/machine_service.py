@@ -1,7 +1,5 @@
 """Machine Service."""
 
-import json
-
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
@@ -38,7 +36,7 @@ class MachineService:
         redis_key = f"machine:{machine_id}:data:{start_time}:{end_time}:{interval}"
         redis_data = await redis_client.get(redis_key)
         if redis_data:
-            return json.loads(redis_data)
+            return redis_data
 
         logger.debug({"payload": {"machine_id": machine_id, "start_time": start_time, "end_time": end_time, "interval": interval}})  # noqa: E501
 

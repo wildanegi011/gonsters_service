@@ -36,6 +36,8 @@ services:
 
   backend:
     build: .
+    env_file:
+      - .env
     container_name: gonsters-backend
     ports:
       - "8000:8000"
