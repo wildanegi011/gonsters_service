@@ -23,7 +23,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
@@ -35,10 +35,10 @@ jobs:
             uv.lock
 
       - name: Install deps for linting
-        run: uv sync --all-extras
+        run: uv sync --group dev
 
       - name: Run Ruff Linter
-        run: uv run ruff check .
+        run: uv run ruff check app --output-format=github
 
   # ===============================
   # 2) TEST JOB
@@ -57,7 +57,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
