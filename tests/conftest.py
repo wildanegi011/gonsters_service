@@ -21,6 +21,12 @@ test_env_vars = {
 
     # Redis
     "REDIS_URL": "redis://localhost:6379/0",
+    "REDIS_EXPIRE": "60",
+    "REDIS_DB": "0",
+    "REDIS_HOST": "localhost",
+    "REDIS_PORT": "6379",
+    "REDIS_PASSWORD": "",
+    "REDIS_USERNAME": "",
 
     # JWT
     "JWT_SECRET_KEY": "test-secret-key",
