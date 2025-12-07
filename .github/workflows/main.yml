@@ -38,7 +38,7 @@ jobs:
         run: uv sync --all-extras
 
       - name: Run Ruff Linter
-        run: uv run ruff check app --output-format=github
+        run: uv run ruff check .
 
   # ===============================
   # 2) TEST JOB
