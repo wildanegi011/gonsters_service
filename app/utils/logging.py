@@ -3,6 +3,7 @@
 import json
 import logging
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 
@@ -89,6 +90,9 @@ class DevLogger:
             # Optional file logging (JSON)
             # ───────────────────────────────────────────────
             if to_file:
+                log_path = Path(log_path)
+                log_path.parent.mkdir(parents=True, exist_ok=True)
+
                 file_handler = logging.FileHandler(log_path)
                 file_handler.setFormatter(JSONFormatter())
                 self.logger.addHandler(file_handler)
